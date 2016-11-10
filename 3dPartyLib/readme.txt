@@ -1,0 +1,1 @@
+This folder contains documentation giving instruction on how to install libraries and setup MSVS for using them. 
