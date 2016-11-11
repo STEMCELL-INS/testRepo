@@ -1,6 +1,6 @@
 
 #include "DataJson.h"
-
+# include <boost\filesystem.hpp>
 
 ObjectsDataJson::ObjectsDataJson(std::string f, std::vector<std::string> sfns, std::vector<std::string> hfns, 
 		std::vector<EasyPickLibrary::Spot> sLst, std::vector<EasyPickLibrary::Halo> hLst, std::vector<std::vector<int>> linkg){
@@ -160,7 +160,9 @@ void ObjectsDataJson::cvtJson(ObjectsDataJson dataObject)
 	doc.AddMember("HaloDataArray", HaloObjectArray, allocator);
 
 	/**** pass data to a file stream ****/
-	ofstream ofs("output.json");
+	boost::filesystem::path p(fname);
+	std::string jsonName = p.stem().string() + ".json";
+	ofstream ofs( jsonName);
 	OStreamWrapper osw(ofs);
 
 	Writer<OStreamWrapper> writer(osw);

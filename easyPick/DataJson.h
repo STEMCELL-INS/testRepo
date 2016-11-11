@@ -1,4 +1,7 @@
 //  a data object to be parsed to json 
+
+#pragma once
+
 #include "easyPick.h"
 #include "circle.h"
 #include "rapidjson/document.h"

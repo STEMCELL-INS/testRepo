@@ -1,4 +1,3 @@
-//#include "easyPick.h"
 #include "DataJson.h"
 #include "helper.h"
 #include <opencv2/highgui/highgui.hpp> 
@@ -13,8 +12,13 @@
 using namespace rapidjson;
 using namespace EasyPickLibrary;
 
-std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\easyPick Images\\";
+//std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\easyPick Images\\";
 //std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\trouble images\\";    // trouble shooting image directory
+std::string dir = "C:\\Users\\fzhu\\Desktop\\new images\\";
+
+// if we prefer to ignore the well boundary detection, put it as false. 
+bool well_boundary_flag = false; 
+
 
 int main(int, char** argv)
 {
@@ -52,6 +56,14 @@ int main(int, char** argv)
 		// test boundary detection
 		Circle well_circle;
 		well_circle = EasyPickLibrary::imgProcFunctions::well_boundary_detection(src, 35, 17, 3);  // original: 35, 17, 3
+		// in the case we don't want the boundary
+		int height = src.rows;
+		int width = src.cols;
+		Circle dummyCircle(int(width/2), int(height/2), 4500); 
+
+		if(!well_boundary_flag){
+			well_circle = dummyCircle;
+		}
 		circle(src_color, Point(well_circle.a, well_circle.b), well_circle.r, Scalar(0, 255, 0), 3);
 		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\boundary.jpg", src_color);
 
@@ -64,7 +76,7 @@ int main(int, char** argv)
 			conts.push_back(spots[i].contour);
 		}
 		drawContours(src_color, conts, -1, Scalar(0,0,255),2, 8);
-		imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\spot\\"+ imgFiles[i], src_color);
+		imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\spot\\" + imgFiles[i], src_color);
 
 
 		// test halo detection
@@ -74,9 +86,9 @@ int main(int, char** argv)
 			contours.push_back(halos[n].contour);
 		}
 		circle(src_color_copy, Point(well_circle.a, well_circle.b), well_circle.r, Scalar(0, 255, 0), 3);
-		//drawContours(src_color_copy, conts, -1, Scalar(0,0,255),2, 8);
-		//drawContours(src_color_copy, contours, -1, Scalar(0,150,205),2, 8);
-		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\halo\\halos.jpg", src_color_copy);
+		drawContours(src_color_copy, conts, -1, Scalar(0,0,255),2, 8);
+		drawContours(src_color_copy, contours, -1, Scalar(0,150,205),2, 8);
+		imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\halo\\" + imgFiles[i], src_color_copy);
 
 
 		// test index linking function
