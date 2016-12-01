@@ -1,7 +1,6 @@
 #include "DataJson.h"
 #include "helper.h"
 #include <opencv2/highgui/highgui.hpp> 
-#include <opencv2/core/core.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -12,12 +11,12 @@
 using namespace rapidjson;
 using namespace EasyPickLibrary;
 
-//std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\easyPick Images\\";
+std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\easyPick Images\\";
 //std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\trouble images\\";    // trouble shooting image directory
-std::string dir = "C:\\Users\\fzhu\\Desktop\\new images\\";
+//std::string dir = "C:\\Users\\fzhu\\Desktop\\day12 images\\";
 
 // if we prefer to ignore the well boundary detection, put it as false. 
-bool well_boundary_flag = false; 
+bool well_boundary_flag = true; 
 
 
 int main(int, char** argv)
@@ -36,26 +35,17 @@ int main(int, char** argv)
 		src = imread(fullPath, CV_LOAD_IMAGE_GRAYSCALE);
 		src_color = imread(fullPath);
 		src_color_copy = src_color.clone();
+
 		if(src.empty()){
-			std::cout << "failed to read image file. check directory.";
+			std::cout << "Error! Failed to read image file. Check directory.";
 			return -1;
 		}
 
 		std::cout << "Processing image: " << i << "\n";
 
-		// test edge detector function
-		//grad = imgProcFunctions::sobel_edge_detector(src, 31);
-		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\sobeledge.jpg", grad);
-	
-		// test morphorlogy edge detection
-		//Mat morph_edge;
-		//morph_edge = EasyPickLibrary::imgProcFunctions::morphology_edge_detector(src, 35, 15);
-		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\morphedge.jpg", morph_edge);
-
-
 		// test boundary detection
 		Circle well_circle;
-		well_circle = EasyPickLibrary::imgProcFunctions::well_boundary_detection(src, 35, 17, 3);  // original: 35, 17, 3
+		well_circle = EasyPickLibrary::imgProcFunctions::well_boundary_detection(src, 35, 17, 3);  // original params: 35, 17, 3; 19, 13 is good for entire cirle detection
 		// in the case we don't want the boundary
 		int height = src.rows;
 		int width = src.cols;
@@ -65,11 +55,10 @@ int main(int, char** argv)
 			well_circle = dummyCircle;
 		}
 		circle(src_color, Point(well_circle.a, well_circle.b), well_circle.r, Scalar(0, 255, 0), 3);
-		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\boundary.jpg", src_color);
 
 
 		// test spot detection
-		std::vector<EasyPickLibrary::Spot> spots = EasyPickLibrary::imgProcFunctions::spots_detection(src, well_circle, 31, 5, 31, 9, 5);
+		std::vector<EasyPickLibrary::Spot> spots = EasyPickLibrary::imgProcFunctions::spots_detection(src, well_circle, 31, 7, 23, 9, 5);  // original 31, 5, 31, 9, 5
 		// extract contours from spots
 		std::vector<std::vector<Point>> conts;
 		for(int i=0; i<spots.size(); ++i) {
@@ -143,6 +132,7 @@ int main(int, char** argv)
 
 		// test json FileWriteStream
 		ObjectsDataJson::cvtJson(data);
+
 	}
 
 	return 0;

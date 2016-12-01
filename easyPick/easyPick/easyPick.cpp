@@ -70,12 +70,65 @@ namespace EasyPickLibrary
 		return inds;
 	}
 
+	// weighted filter
+	Mat imgProcFunctions::weightedFilter(Mat in, int type)
+	{
+		int nFiltCols, nFiltRows;
+		Mat filter,kernel;
+		if(type == 1) {
+			// define a weighted kernel 3 by 3
+			nFiltCols = 3;
+			nFiltRows = 3;
+			double kdata[] = {(1.0f)/(16.0f),(2.0f)/(16.0f),(1.0f)/(16.0f),
+							  (2.0f)/(16.0f),(4.0f)/(16.0f),(2.0f)/(16.0f),
+							  (1.0f)/(16.0f),(2.0f)/(16.0f),(1.0f)/(16.0f)};
+			kernel = Mat(nFiltCols, nFiltRows,CV_64F, kdata);
+			
+		}
+		else if(type == 2) {
+			// define a weighted kernel 5 by 5
+			nFiltCols = 5;
+			nFiltRows = 5;
+			double kdata[] = {(1.0f)/(45.0f),(1.0f)/(45.0f),(2.0f)/(45.0f),(1.0f)/(45.0f),(1.0f)/(45.0f),
+							  (1.0f)/(45.0f),(2.0f)/(45.0f),(3.0f)/(45.0f),(2.0f)/(45.0f),(1.0f)/(45.0f),
+							  (2.0f)/(45.0f),(3.0f)/(45.0f),(4.0f)/(45.0f),(3.0f)/(45.0f),(2.0f)/(45.0f),
+							  (1.0f)/(45.0f),(2.0f)/(45.0f),(3.0f)/(45.0f),(2.0f)/(45.0f),(1.0f)/(45.0f),
+							  (1.0f)/(45.0f),(1.0f)/(45.0f),(2.0f)/(45.0f),(1.0f)/(45.0f),(1.0f)/(45.0f)};
+
+			kernel = Mat(nFiltCols, nFiltRows,CV_64F, kdata);
+		}
+		else if(type == 3) {
+			// define a weighted kernel by 7 by 7
+			nFiltCols = 7;
+			nFiltRows = 7;
+			double kdata[] = {(0.0f)/(77.0f),(0.0f)/(77.0f),(1.0f)/(77.0f),(2.0f)/(77.0f),(1.0f)/(77.0f), (0.0f)/(77.0f), (0.0f)/(77.0f),
+							  (0.0f)/(77.0f),(1.0f)/(77.0f),(2.0f)/(77.0f),(3.0f)/(77.0f),(2.0f)/(77.0f), (1.0f)/(77.0f), (0.0f)/(77.0f),
+							  (1.0f)/(77.0f),(2.0f)/(77.0f),(3.0f)/(77.0f),(4.0f)/(77.0f),(3.0f)/(77.0f), (2.0f)/(77.0f), (1.0f)/(77.0f),
+							  (1.0f)/(77.0f),(2.0f)/(77.0f),(4.0f)/(77.0f),(5.0f)/(77.0f),(4.0f)/(77.0f), (2.0f)/(77.0f), (1.0f)/(77.0f),
+							  (1.0f)/(77.0f),(2.0f)/(77.0f),(3.0f)/(77.0f),(4.0f)/(77.0f),(3.0f)/(77.0f), (2.0f)/(77.0f), (1.0f)/(77.0f),
+							  (0.0f)/(77.0f),(1.0f)/(77.0f),(2.0f)/(77.0f),(3.0f)/(77.0f),(2.0f)/(77.0f), (1.0f)/(77.0f), (0.0f)/(77.0f),
+							  (0.0f)/(77.0f),(0.0f)/(77.0f),(1.0f)/(77.0f),(2.0f)/(77.0f),(1.0f)/(77.0f), (0.0f)/(77.0f), (0.0f)/(77.0f),};
+
+			kernel = Mat(nFiltCols, nFiltRows,CV_64F, kdata);
+		}
+		
+		// convolve the kernel with image
+		filter2D(in, in, CV_8UC1, kernel);
+		return in;
+	}
+
+
+
 	// well boundary detection
 	Circle imgProcFunctions::well_boundary_detection(Mat img, int blurKerSize, int dilKerSize, int eroKerSize)
 	{
+		// apply weighted
+		Mat imgFiltered = imgProcFunctions::weightedFilter(img, 1);
+		
 		// find edges
 		Mat edges;
-		edges = imgProcFunctions::morphology_edge_detector(img, blurKerSize, dilKerSize);
+		edges = imgProcFunctions::morphology_edge_detector(imgFiltered, blurKerSize, dilKerSize);
+		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\boundary_edge.jpg", edges);
 
 		// threshold to binary image
 		Mat og_bin;
@@ -85,6 +138,7 @@ namespace EasyPickLibrary
 		Mat kernel, eroded;
 		kernel = getStructuringElement(MORPH_ELLIPSE, Size(eroKerSize, eroKerSize));
 		erode(og_bin, eroded, kernel);
+		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\binary_edge.jpg", eroded);
 
 		// detect all the contours
 		vector<vector<Point>> contours;
@@ -105,8 +159,6 @@ namespace EasyPickLibrary
 		// find the top 3 contours
 		std::array<int, 3> indices;
 		indices = imgProcFunctions::top_three_ind(perimeter_list);
-		// test only - print result
-		//std::cout << "top three contours: "<< indices[0] << ", " << indices[1] << ", " << indices[2] << "\n";
 		
 		// initialize a list of circles
 		std::vector<Circle> circle_list;
@@ -115,6 +167,11 @@ namespace EasyPickLibrary
 
 			// points forming the contour
 			vector<Point> temp_cont = contours[indices[k]];
+
+			// test only : visualize the contours
+			//drawContours(img, contours, indices[k], Scalar(0,0,255), 2, 8);
+			//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\largest_contours_edge.jpg", img);
+
 			// number of points consisting of the contour
 			int num_points = temp_cont.size();
 			// x and y coordinates of points
@@ -128,19 +185,15 @@ namespace EasyPickLibrary
 			Data temp_data(num_points, xCoords, yCoords);
 			// calculate the circle
 			Circle temp_circle;
-			temp_circle = CircleFit (temp_data);
+			temp_circle = CircleFit(temp_data);
 
 			// push into circle list
 			circle_list.push_back(temp_circle);
-
+			
 			// release memory
 			delete[] xCoords;
 			delete[] yCoords;
 		}
-		// test only - print circles
-		/*for(int n=0; n<3; ++n) {
-			circle_list[n].print();
-		}*/
 	
 		// calculate perimeters of the three circles
 		Mat dummy;
@@ -166,7 +219,8 @@ namespace EasyPickLibrary
 		}
 
 		// test only
-		//std::cout << "max perimeter: " << max_perim << "\n" << "max ind: " << max_ind << "\n";
+		//drawContours(img, contours, indices[max_ind], Scalar(0,0,255), 6, 10);
+		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\largest_contour_edge.jpg", img);
 
 		// construct the inner circle
 		Circle fitCircle(circle_list[max_ind].a, circle_list[max_ind].b, circle_list[max_ind].r);
@@ -239,13 +293,17 @@ namespace EasyPickLibrary
 	{
 		// blurring
 		Mat blurred;
-		GaussianBlur(img, blurred, Size(gaussianKsize, gaussianKsize), 0, 0);
-		blur(blurred, blurred, Size(blurKsize, blurKsize), Point(-1,-1));
+		//GaussianBlur(img, blurred, Size(gaussianKsize, gaussianKsize), 0, 0);
+		
+		// apply a weighted filter
+		Mat blurFiltered = imgProcFunctions::weightedFilter(img, 1);
+
+		blur(blurFiltered, blurFiltered, Size(blurKsize, blurKsize), Point(-1,-1));
 		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\spot\\gaus_average.jpg", blurred);
 
 		// edge detection
 		Mat edge;
-		edge = sobel_edge_detector(blurred, sobelKsize);
+		edge = sobel_edge_detector(blurFiltered, sobelKsize);
 		//imwrite("c:\\projects\\easypickfl_imgprocessing\\inter_results\\spot\\edge.jpg", edge);
 
 		// binarize
@@ -295,8 +353,9 @@ namespace EasyPickLibrary
 							// calculate perimeter
 							double perim = arcLength(cont_temp, true);
 							// calculate roundness
-							double round = pow(perim, 2)/(2*Pi*area);
-							if(round<4.1 && area > 50 && area<20000){
+							double round = (4*Pi*area)/pow(perim, 2);
+							
+							if(round>0.3 && area > 50 && area<20000){
 								// centroid
 								int centroid_x = (temp.m10)/(temp.m00);
 								int centroid_y = (temp.m01)/(temp.m00);
@@ -361,8 +420,8 @@ namespace EasyPickLibrary
 							Rect box = boundingRect(cont);
 							double aspect_ratio_w = (box.width)/(box.height);
 							double aspect_ratio_h = (box.height)/(box.width);
-							double roundness = pow(l, 2)/(2*Pi*area);
-							if(aspect_ratio_w < 1.5 && aspect_ratio_h < 1.5 && roundness < 4.5){
+							double roundness = (4*Pi*area)/pow(l, 2);
+							if(aspect_ratio_w < 1.5 && aspect_ratio_h < 1.5 && roundness > 0.3){
 								// coordinate of halo
 								int centroid_x = (m.m10)/(m.m00);
 								int centroid_y = (m.m01)/(m.m00);

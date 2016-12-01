@@ -3,14 +3,13 @@
 
 #include "stdafx.h"
 #include "EasyPickDLL.h"
-
+#include <fstream>
 using namespace rapidjson;
 
 std::string version = "1.0.0";
 
-int process_day4()
+int process_day4(char* dir)
 {
-	std::string dir = "C:\\projects\\EasyPickFL_ImgProcessing\\easyPick Images\\";
 	// list files in folder
 	std::vector<string> imgFiles;
 	getFileList(dir, imgFiles);

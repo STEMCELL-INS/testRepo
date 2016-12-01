@@ -12,5 +12,5 @@
 #define EASYPICK_API __declspec(dllimport) 
 #endif
 
-extern "C" EASYPICK_API int process_day4();
+extern "C" EASYPICK_API int process_day4(char* folderPath);
 

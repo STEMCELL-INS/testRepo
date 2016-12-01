@@ -58,6 +58,9 @@ namespace EasyPickLibrary
 		// Sort elements in a vector, return 3 indices representing top ones
 		static std::array<int, 3> top_three_ind(const std::vector<double> values);
 
+		// apply a 3 by 3 weighted averaging filter type1: (121/242/121) type2: (11211/12321/23432/12321/11211)
+		static Mat weightedFilter(Mat img, int type);
+
         // Returns a circle representing the boundary
         static Circle well_boundary_detection(Mat img, int blurKerSize, int dilKerSize, int eroKerSize);
 
