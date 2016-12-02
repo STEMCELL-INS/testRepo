@@ -1,0 +1,1 @@
+C:\projects\testRepo\testRepo\easyPickTestGUI\EasyPickTestGUI\bin\Debug\EasyPickTestGUI.exe.config
